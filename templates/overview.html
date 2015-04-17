@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title%}Overview{% endblock %}
+{% block content %}
+  <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+    <div class="table-responsive">
+      <table id="overview-table" class="table table-striped table-condensed tablesorter">
+        <thead>
+          <tr>
+            <th>Player</th>
+            <th>Team</th>
+            <th>Position</th>
+            <th>High Bid</th>
+            <th>Percent of Budget</th>
+            <th>High Bidder</th>
+            <th>Started</th>
+            <th>Last Bid</th>
+            <th>Over In</th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for bid in bids %}
+          <tr>
+            <td>{{ bid.player }}</td>
+            <td>{{ bid.team }}</td>
+            <td>{{ bid.position }}</td>
+            <td>{{ bid.high_bid }}</td>
+            <td>{{ bid.pct_budget | pct | round(2) }}</td>
+            <td>{{ bid.high_bidder }}</td>
+            <td>{{ bid.started }}</td>
+            <td>{{ bid.last_bid }}</td>
+            <td>{{ bid.over_in }}</td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+{% endblock %}
+{% block javascripts %}
+  {{ super() }}
+  <script type="text/javascript">
+    $(document).ready(function() {
+      $("#overview-table").tablesorter({
+        sortList: [[7, 0]]
+      });
+      $("#overview-nav").addClass("active");
+    });
+  </script>
+{% endblock %}
+
+

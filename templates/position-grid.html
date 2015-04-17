@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+{% block title%}Position Grid{% endblock %}
+{% block content %}
+  <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+    <div id="position-chart" style="height:400px">
+      <svg></svg>
+      
+    </div>
+    <div class="table-responsive">
+      <table id="position-table" class="table table-striped table-condensed tablesorter">
+        <thead>
+          <tr>
+            <th>Owner</th>
+            <th>RB</th>
+            <th>RB (%)</th>
+            <th>WR</th>
+            <th>WR (%)</th>
+            <th>QB</th>
+            <th>QB (%)</th>
+            <th>TE</th>
+            <th>TE (%)</th>
+            <th>Amount Left</th>
+            <th>Amount Left (%)</th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for row in rows[:-1] %}
+          <tr>
+            <td>{{ row.owner }}</td>
+            <td>{{ row.RB | int }}</td>
+            <td>{{ row.RB_pct | pct | round(2) }}</td>
+            <td>{{ row.WR | int }}</td>
+            <td>{{ row.WR_pct | pct | round(2) }}</td>
+            <td>{{ row.QB | int }}</td>
+            <td>{{ row.QB_pct | pct | round(2) }}</td>
+            <td>{{ row.TE | int }}</td>
+            <td>{{ row.TE_pct | pct | round(2) }}</td>
+            <td>{{ row.left | int }}</td>
+            <td>{{ row.left_pct | pct | round(2) }}</td>
+          </tr>
+        {% endfor %}
+        </tbody>
+        <tbody class="avoid-sort">
+          <tr>
+            <td>{{ rows[-1].owner }}</td>
+            <td>{{ rows[-1].RB | int }}</td>
+            <td>{{ rows[-1].RB_pct | pct | round(2) }}</td>
+            <td>{{ rows[-1].WR | int }}</td>
+            <td>{{ rows[-1].WR_pct | pct | round(2) }}</td>
+            <td>{{ rows[-1].QB | int }}</td>
+            <td>{{ rows[-1].QB_pct | pct | round(2) }}</td>
+            <td>{{ rows[-1].TE | int }}</td>
+            <td>{{ rows[-1].TE_pct | pct | round(2) }}</td>
+            <td>{{ rows[-1].left | int }}</td>
+            <td>{{ rows[-1].left_pct | pct | round(2) }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+{% endblock %}
+{% block javascripts %}
+  {{ super() }}
+  <script type="text/javascript">
+
+    function to_chart_data(data) {
+      chart_data = {
+        'RB': [],
+        'WR': [],
+        'QB': [],
+        'TE': []
+      }
+      for (var i = 0; i < data.length; i++) {
+        d = data[i]
+        // chart_data['RB'].push({ 'x': d['owner'], 'y': d['RB'] })
+        // chart_data['WR'].push({ 'x': d['owner'], 'y': d['WR'] })
+        // chart_data['QB'].push({ 'x': d['owner'], 'y': d['QB'] })
+        // chart_data['TE'].push({ 'x': d['owner'], 'y': d['TE'] })
+        chart_data['RB'].push({ 'x': d['owner'], 'y': d['RB_pct'] })
+        chart_data['WR'].push({ 'x': d['owner'], 'y': d['WR_pct'] })
+        chart_data['QB'].push({ 'x': d['owner'], 'y': d['QB_pct'] })
+        chart_data['TE'].push({ 'x': d['owner'], 'y': d['TE_pct'] })
+      }
+      ret = []
+      for (key in chart_data) {
+        ret.push({'key': key, 'values': chart_data[key]})
+      }
+      return ret
+    }
+
+    $(document).ready(function() {
+      var json_rows = {{ json_rows | safe }}
+
+      $("#position-table").tablesorter({
+        cssInfoBlock : "avoid-sort"
+      });
+      $("#position-table tr:last").addClass("static");
+      $("#position-nav").addClass("active");
+
+      nv.addGraph(function() {
+        var chart = nv.models.multiBarChart()
+          .duration(100)
+          .reduceXTicks(false)
+          .rotateLabels(10)
+          .showControls(true)
+          .groupSpacing(0.1)
+          //.forceY(400)
+
+        chart.yAxis
+          .tickFormat(d3.format('%'));
+
+        d3.select('#position-chart svg')
+          .datum(to_chart_data(json_rows.slice(0, json_rows.length - 1)))
+          .call(chart);
+
+        nv.utils.windowResize(chart.update);
+
+        return chart;
+      });
+    });
+  </script>
+{% endblock %}

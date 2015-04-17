@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+{% block title%}Against ADP{% endblock %}
+{% block content%}
+  <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+    <button id="toggle-finished" class="btn btn-default">Toggle finished auctions</button>
+    <button id="toggle-active" class="btn btn-default">Toggle active auctions</button>
+    <div id="adp-chart" style="height:400px">
+      <svg></svg>  
+    </div>
+    <div class="table-responsive">
+      <table id="against-adp-table" class="table table-striped table-condensed tablesorter">
+        <thead>
+          <tr>
+            <th>Player</th>
+            <th>Team</th>
+            <th>Position</th>
+            <th>ADP</th>
+            <th>High Bid</th>
+            <th>Percent of Budget</th>
+            <th>High Bidder</th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for row in rows %}
+          <tr>
+            <td>{{ row.player }}</td>
+            <td>{{ row.team }}</td>
+            <td>{{ row.position }}</td>
+            <td>{{ row.adp }}</td>
+            <td>{{ row.high_bid }}</td>
+            <td>{{ row.pct_budget | pct | round(2) }}</td>
+            <td>{{ row.high_bidder }}</td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+{% endblock %}
+{% block javascripts %}
+ {{ super() }}
+ <script type="text/javascript">
+  var finishedHidden = false;
+  var activeHidden = false;
+  $(document).ready(function() {
+    $("#toggle-finished").click(function() {
+      d3.selectAll('.nv-point').filter(function(d){ return d.shape === 'cross' })
+        .classed('hidden-point', !finishedHidden);
+      finishedHidden = !finishedHidden;
+    });
+
+    $("#toggle-active").click(function() {
+      d3.selectAll('.nv-point').filter(function(d){ return d.shape === 'circle' })
+        .classed('hidden-point', !activeHidden);
+      activeHidden = !activeHidden;
+    });
+
+    function to_chart_data(data) {
+      chart_data = {
+        'RB': [],
+        'WR': [],
+        'QB': [],
+        'TE': []
+      }
+      for (var i = 0; i < data.length; i++) {
+        d = data[i]
+        chart_data[d['position']].push({ 
+          'x': d['adp'], 
+          'y': d['high_bid'], 
+          'size': d['size'],
+          'shape': d['is_over'] ? 'cross' : 'circle',
+          'player': d['player'],
+          'over_in': d['over_in_str'],
+          'is_over': d['is_over']
+        });
+      }
+      ret = []
+      for (key in chart_data) {
+        ret.push({'key': key, 'values': chart_data[key]})
+      }
+      return ret
+    }
+    var json_rows = {{ json_rows | safe }}
+    var chart = nv.addGraph(function() {
+        chart = nv.models.scatterChart()
+            .showDistX(true)
+            .showDistY(true)
+            .forceX([0])
+            .forceY([0])
+            .tooltipContent(function(group, _, _, _, point) {
+              var overIn = point['point']['is_over'] ? '' : '<p>Over In: ' + point['point']['over_in'] + '</p>'
+              var tooltip = '<p>' + point['point']['player'] + '</p>' + overIn
+              return tooltip
+            })
+            .color(d3.scale.category10().range())
+        chart.xAxis.tickFormat(d3.format('.02f'));
+        chart.yAxis.tickFormat(d3.format('.02f'));
+
+        d3.select('#adp-chart svg')
+            .datum(to_chart_data(json_rows))
+            .call(chart);
+        nv.utils.windowResize(chart.update);
+        chart.dispatch.on('stateChange', function(e) { ('New State:', JSON.stringify(e)); });
+        return chart;
+    });
+    $("#against-adp-table").tablesorter({
+      sortList: [[3,0]]
+    });
+    $("#against-adp-nav").addClass("active")
+  });
+ </script>
+{% endblock %}
