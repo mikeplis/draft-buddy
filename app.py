@@ -15,6 +15,7 @@ league_id = 70421
 franchise_id = '0007'
 auction_budget = 400.0
 num_teams = 12
+roster_size = 28
 
 @app.template_filter('pct')
 def pct(s):
@@ -45,19 +46,25 @@ def position_grid():
   sorted_bids = sorted(bids, key=lambda b: b['high_bidder'])
   rows = []
   totals = {'owner': 'Total', 'RB': 0, 'WR': 0, 'QB': 0, 'TE': 0}
-  app.logger.debug(json.dumps(sorted_bids, default=repr))
+  total_spent = 0
   for owner, owner_bids in groupby(sorted_bids, lambda b: b['high_bidder']):
-    app.logger.debug(owner)
+    owner_bids = list(owner_bids)
     row = { 'owner': owner, 'RB': 0, 'WR': 0, 'QB': 0, 'TE': 0 }
+    spent = 0
     for owner_bid in owner_bids:
-      row[owner_bid['position']] += owner_bid['high_bid']
-      totals[owner_bid['position']] += owner_bid['high_bid']
+      bid_amount = owner_bid['high_bid']
+      row[owner_bid['position']] += bid_amount
+      totals[owner_bid['position']] += bid_amount
+      spent += bid_amount
+      total_spent += bid_amount
     row['RB_pct'] = row['RB'] / auction_budget
     row['WR_pct'] = row['WR'] / auction_budget
     row['QB_pct'] = row['QB'] / auction_budget
     row['TE_pct'] = row['TE'] / auction_budget
-    row['left'] = auction_budget - row['RB'] - row['WR'] - row['QB'] - row['TE']
+    row['left'] = auction_budget - spent
     row['left_pct'] = row['left'] / auction_budget
+    row['per_player_spent'] = spent / len(owner_bids)
+    row['per_player_left'] = (auction_budget - spent) / (roster_size - len(owner_bids))
     rows.append(row)
   totals['RB_pct'] = totals['RB'] / (auction_budget * num_teams)
   totals['WR_pct'] = totals['WR'] / (auction_budget * num_teams)
@@ -65,6 +72,8 @@ def position_grid():
   totals['TE_pct'] = totals['TE'] / (auction_budget * num_teams)
   totals['left'] = (auction_budget * num_teams) - totals['RB'] - totals['WR'] - totals['QB'] - totals['TE']
   totals['left_pct'] = totals['left'] / (auction_budget * num_teams)
+  totals['per_player_spent'] = total_spent / len(bids)
+  totals['per_player_left'] = (auction_budget * num_teams - total_spent) / ((roster_size * num_teams) - len(bids))
   rows.append(totals)
 
   resp = make_response(render_template('position-grid.html', rows=rows, json_rows=json.dumps(rows)))
@@ -149,6 +158,8 @@ def get_adp():
     player = td[2].a.text
     if player == 'Odell Beckham Jr.':
       player = 'Odell Beckham'
+    if player == 'Devante Parker':
+      player = 'DeVante Parker'
     adps[player] = float(td[4].text)
   return adps
 
