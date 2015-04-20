@@ -97,7 +97,8 @@
       var json_rows = {{ json_rows | safe }}
 
       $("#position-table").tablesorter({
-        cssInfoBlock : "avoid-sort"
+        cssInfoBlock : "avoid-sort",
+        sortList: [[10, 1]]
       });
       $("#position-table tr:last").addClass("static");
       $("#position-nav").addClass("active");
