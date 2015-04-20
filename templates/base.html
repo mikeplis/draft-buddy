@@ -1,15 +1,18 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>{% block title %}Home{% endblock %}</title>
+  {% block head %}
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
   <link rel="stylesheet" href="/static/dashboard.css">
   <link rel="stylesheet" href="/static/tablesorter.css">
   <link rel="stylesheet" href="/static/charts.css">
   <link rel="stylesheet" href="https://cdn.rawgit.com/novus/nvd3/v1.7.1/build/nv.d3.css">
+  <title>{% block title %}Home{% endblock %}</title>
+  {% endblock %}
 </head>
 <body>
 
+{% block topnav %}
 <nav class="navbar navbar-inverse navbar-fixed-top">
   <div class="container-fluid">
     <div class="navbar-header">
@@ -19,21 +22,24 @@
         <span class="icon-bar"></span>
         <span class="icon-bar"></span>
       </button>
-      <a class="navbar-brand" href="#">Project name</a>
+      <a class="navbar-brand" href="#">Draft buddy</a>
     </div>
   </div>
 </nav>
+{% endblock topnav %}
 
 <div class="container-fluid">
   <div class="row">
+    {% block sidenav %}
     <div class="col-sm-3 col-md-2 sidebar">
       <ul class="nav nav-sidebar">
-        <li id="overview-nav"><a href="{{ url_for('overview') }}">Overview</a></li>
+        <li id="current-nav"><a href="{{ url_for('current_bids') }}">Current Bids</a></li>
         <li id="position-nav"><a href="{{ url_for('position_grid') }}">Allocation By Position</a></li>
         <li id="against-adp-nav"><a href="{{ url_for('against_adp') }}">Against ADP</a></li>
         <li id="all-adp-nav"><a href="{{ url_for('all_adp') }}">All ADP</a></li>
     </div>
-      {% block content %}{% endblock %}
+    {% endblock %}
+    {% block content %}{% endblock %}
   </div>
 </div>
 

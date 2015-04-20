@@ -1,9 +1,9 @@
 {% extends "base.html" %}
-{% block title%}Overview{% endblock %}
+{% block title%}Current Bids{% endblock %}
 {% block content %}
   <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
     <div class="table-responsive">
-      <table id="overview-table" class="table table-striped table-condensed tablesorter">
+      <table id="current-table" class="table table-striped table-condensed tablesorter">
         <thead>
           <tr>
             <th>Player</th>
@@ -40,10 +40,10 @@
   {{ super() }}
   <script type="text/javascript">
     $(document).ready(function() {
-      $("#overview-table").tablesorter({
+      $("#current-table").tablesorter({
         sortList: [[7, 0]]
       });
-      $("#overview-nav").addClass("active");
+      $("#current-nav").addClass("active");
     });
   </script>
 {% endblock %}

@@ -25,14 +25,17 @@ def pct(s):
 def dollar(s):
   return '$ {}'.format(s)
 
-
 @app.route('/')
-def overview():
+def home():
+  return render_template('home.html')
+
+@app.route('/current_bids')
+def current_bids():
   # user could give these values as input on home page, then store them in cookie
   password = request.args.get('password')
   (opener, session_id) = mfl_login(year, league_id, franchise_id, password)
   bids = get_bids(opener, year, league_id, current_only=True)
-  resp = make_response(render_template('overview.html', bids=bids))
+  resp = make_response(render_template('current_bids.html', bids=bids))
   if session_id is not None:
     resp.set_cookie('mfl_session_id', session_id)
   return resp
