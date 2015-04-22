@@ -154,7 +154,7 @@ def get_adp():
   opener.addheaders = [('User-agent', 'Mozilla/5.0')]
   url = 'http://dynastyleaguefootball.com/adpdata/2015-adp/?month=4'
   soup = BeautifulSoup(opener.open(url).read())
-  rows = soup.find_all('table')[0].find_all('tr')[1:]
+  rows = soup.find_all('table')[1].find_all('tr')[1:]
   adps = {}
   for row in rows:
     td = row.find_all('td')
