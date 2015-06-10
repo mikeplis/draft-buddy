@@ -55,11 +55,13 @@ def position_grid():
     row = { 'owner': owner, 'RB': 0, 'WR': 0, 'QB': 0, 'TE': 0 }
     spent = 0
     for owner_bid in owner_bids:
-      bid_amount = owner_bid['high_bid']
-      row[owner_bid['position']] += bid_amount
-      totals[owner_bid['position']] += bid_amount
-      spent += bid_amount
-      total_spent += bid_amount
+      # ignore players who aren't categorized as a QB, RB, WR, or TE
+      if owner_bid['position'] in row:
+        bid_amount = owner_bid['high_bid']
+        row[owner_bid['position']] += bid_amount
+        totals[owner_bid['position']] += bid_amount
+        spent += bid_amount
+        total_spent += bid_amount
     row['RB_pct'] = row['RB'] / auction_budget
     row['WR_pct'] = row['WR'] / auction_budget
     row['QB_pct'] = row['QB'] / auction_budget
@@ -67,7 +69,10 @@ def position_grid():
     row['left'] = auction_budget - spent
     row['left_pct'] = row['left'] / auction_budget
     row['per_player_spent'] = spent / len(owner_bids)
-    row['per_player_left'] = (auction_budget - spent) / (roster_size - len(owner_bids))
+    if roster_size == len(owner_bids):
+      row['per_player_left'] = 0
+    else:
+      row['per_player_left'] = (auction_budget - spent) / (roster_size - len(owner_bids))
     rows.append(row)
   totals['RB_pct'] = totals['RB'] / (auction_budget * num_teams)
   totals['WR_pct'] = totals['WR'] / (auction_budget * num_teams)
@@ -76,7 +81,10 @@ def position_grid():
   totals['left'] = (auction_budget * num_teams) - totals['RB'] - totals['WR'] - totals['QB'] - totals['TE']
   totals['left_pct'] = totals['left'] / (auction_budget * num_teams)
   totals['per_player_spent'] = total_spent / len(bids)
-  totals['per_player_left'] = (auction_budget * num_teams - total_spent) / ((roster_size * num_teams) - len(bids))
+  if roster_size * num_teams == len(bids):
+    totals['per_player_left'] = 0
+  else:
+    totals['per_player_left'] = (auction_budget * num_teams - total_spent) / ((roster_size * num_teams) - len(bids))
   rows.append(totals)
 
   resp = make_response(render_template('position-grid.html', rows=rows, json_rows=json.dumps(rows)))
